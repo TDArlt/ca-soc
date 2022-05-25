@@ -1,5 +1,7 @@
+import { date } from 'quasar';
 import config from '../config';
 import Http from 'axios';
+import { useListsStore } from "stores/listsstore";
 
 
 export default ({ app, router, store, Vue }) => {
@@ -20,7 +22,6 @@ export default ({ app, router, store, Vue }) => {
         {
             zip = "&gzip=1"
         }
-        console.log(config.pullPath + "?url=" + encodeURI(url));
         return (await Http.get(config.pullPath + "?url=" + encodeURI(url) + zip)).data;
     };
     
@@ -64,5 +65,33 @@ export default ({ app, router, store, Vue }) => {
     app.config.globalProperties.$httpPost = async function(url, postVar)
     {
         return (await Http.post(url, postVar)).data;
+    };
+
+
+
+
+    /**
+     * Updates the current caches for CVEs etc. Might take some time and should not run too frequent
+     * @returns nothing
+     */
+    app.config.globalProperties.$updateCaches = async function(force = false)
+    {
+        const lStore = useListsStore();
+
+        if (force || lStore.needsRefresh)
+        {
+            let dl = await app.config.globalProperties.$httpPulledGet("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-recent.json.gz", true);
+            lStore.setRecentCVEs(dl);
+
+            dl = await app.config.globalProperties.$httpPulledGet("https://nvd.nist.gov/feeds/json/cve/1.1/nvdcve-1.1-modified.json.gz", true);
+            lStore.setModifiedCVEs(dl);
+
+            dl = await app.config.globalProperties.$httpPulledGet("https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json");
+            lStore.setKnownExploitedVulns(dl);
+            console.log(dl);
+            console.log(lStore.knownExploitedVulns);
+
+            lStore.cacheUpdated();
+        }
     };
 }

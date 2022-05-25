@@ -1,43 +1,112 @@
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+  <q-page class="flex flex-center row">
+    <template v-if="!loading">
+      <template v-for="table in informationTables" :key="table.title">
+      <InformationTable
+        class="col-6"
+        :title="table.title"
+        :columns="table.columns"
+        :data="table.dataset"
+      />
+      </template>
+    </template>
   </q-page>
 </template>
 
 <script>
 import { defineComponent } from 'vue';
-import Http from 'axios';
+import { date } from 'quasar';
+import InformationTable from 'components/InformationTable.vue'
+import { useListsStore } from "stores/listsstore";
 
 export default defineComponent({
   name: 'IndexPage',
 
+  
+  data() {
+    return {
+      loading: true,
+
+      informationTables: [
+        {
+          title: "Recent CVEs",
+          columns: [
+            { name: "cveid", label: "CVE Number", field: "id", align: "left", sortable: true },
+            { name: "score", label: "Severity", field: "impactScore", align: "left", sortable: true, format: (val, row) => (row.impactScore + " [" + row.impactSeverity + "]") },
+            { name: "description", label: "Description", field: "description", align: "left", sortable: false },
+            { name: "modifiedOn", label: "Modified", field: "modifiedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
+            { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
+            { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
+            {
+              name: "affected", label: "Affected",
+              field: "affected",
+
+              format: (val, row) => {
+                let output = "";
+                for (let index = 0; index < row.affected.length; index++)
+                {
+                  output += row.affected[index].vendor + ": " + row.affected[index].product + " " + row.affected[index].version + "\n"
+                }
+                return output;},
+              align: "left", sortable: true
+              },
+            
+          ],
+          dataset: [],
+        },
+        
+        {
+          title: "Updated CVEs",
+          columns: [
+            { name: "cveid", label: "CVE Number", field: "id", align: "left", sortable: true },
+            { name: "score", label: "Severity", field: "impactScore", align: "left", sortable: true, format: (val, row) => (row.impactScore + " [" + row.impactSeverity + "]") },
+            { name: "description", label: "Description", field: "description", align: "left", sortable: false },
+            { name: "modifiedOn", label: "Modified", field: "modifiedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
+            { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
+            { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
+            
+          ],
+          dataset: [],
+        }
+      ]
+    }
+  },
+
+  computed: {
+    recentCVEs()
+    {
+      const lStore = useListsStore();
+      return lStore.recentCVEs;
+    },
+
+    updatedCVEs()
+    {
+      const lStore = useListsStore();
+      return lStore.modifiedCVEs;
+    },
+
+
+  },
+
+  components: {
+    InformationTable
+  },
+
   mounted() {
-    this.syncInformation();
+    this.loadTables();
   },
 
   methods: {
-
-    async syncInformation()
+    async loadTables()
     {
-      // Note: As all of these websites seem to use combinations of CORS-restrictions,
-      // we will need to build a simple php middleware for pulling the requests without browser
-      // interaction
+      this.loading = true;
+      await this.$updateCaches();
 
+      this.informationTables[0].dataset = this.recentCVEs;
+      this.informationTables[1].dataset = this.updatedCVEs;
 
-      //https://www.cve-search.org/api/
-      let cveList = await Http.get("https://cve.circl.lu/api/last");
-
-      console.log(cveList);
-
-      let knownExploitedCVECat = await Http.get("https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json");
-
-      console.log(knownExploitedCVECat);
+      this.loading = false;
     },
-
   },
 
 
