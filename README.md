@@ -17,6 +17,9 @@ I only tested this setup in our environment, so if e.g. your internal accounts a
 ## Installation
 
 This website is created with quasar, see https://quasar.dev/
+
+Before running, you need to define the environment properties in the (to-be-created) file `src/config/index.js`. Use the sample file at this path to create your own.
+
 After setting up a quasar dev environment and running `npm install`, you can use `quasar dev` for testing or `quasar build` for creating the final website.
 
 URLs and other access-relevant information is
