@@ -37,19 +37,7 @@ export default defineComponent({
             { name: "modifiedOn", label: "Modified", field: "modifiedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
             { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
             { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
-            {
-              name: "affected", label: "Affected",
-              field: "affected",
-
-              format: (val, row) => {
-                let output = "";
-                for (let index = 0; index < row.affected.length; index++)
-                {
-                  output += row.affected[index].vendor + ": " + row.affected[index].product + " " + row.affected[index].version + "\n"
-                }
-                return output;},
-              align: "left", sortable: true
-              },
+            { name: "affected", label: "Affected", field: "affectedAsString", align: "left", sortable: true },
             
           ],
           dataset: [],
@@ -64,6 +52,7 @@ export default defineComponent({
             { name: "modifiedOn", label: "Modified", field: "modifiedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
             { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
             { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
+            { name: "affected", label: "Affected", field: "affectedAsString", align: "left", sortable: true },
             
           ],
           dataset: [],

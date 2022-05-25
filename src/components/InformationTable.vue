@@ -19,6 +19,17 @@
             {{props.value}}
           </q-td>
         </template>
+        <template v-else-if="props.col.name == 'affected'">
+          <q-td :props="props" style="white-space: unset; max-width: 400px;">
+            <ul>
+              <template v-for="aff in props.row.affected" :key="aff.cpe32Uri">
+                <li>
+                  {{aff.vendor}}: {{aff.product}} {{aff.version}}
+                </li>
+              </template>
+            </ul>
+          </q-td>
+        </template>
         <template v-else>
           <q-td :props="props">
             {{props.value}}

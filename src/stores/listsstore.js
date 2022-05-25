@@ -90,6 +90,7 @@ export const useListsStore = defineStore(
             publishedOn: new Date(nistList.CVE_Items[index].publishedDate),
             modifiedOn: new Date(nistList.CVE_Items[index].lastModifiedDate),
             affected: [],
+            affectedAsString: "",
           };
 
           for (let descIndex = 0; descIndex < nistList.CVE_Items[index].cve.description.description_data.length; descIndex++)
@@ -123,6 +124,7 @@ export const useListsStore = defineStore(
               for (let sIndex = 0; sIndex < sub.length; sIndex++)
               {
                 element.affected.push(sub[sIndex]);
+                element.affectedAsString += sub[sIndex].cpe32Uri + "; ";
               }
             }
           }
@@ -162,14 +164,13 @@ export const useListsStore = defineStore(
             const cpeProp = root.cpe_match[index].cpe23Uri.split(':');
 
             output.push( {
-              cpe32Uri: root.cpe_match[index].cpe32Uri,
+              cpe32Uri: root.cpe_match[index].cpe23Uri,
               vendor: cpeProp[3],
               product: cpeProp[4],
               version: cpeProp[5],
             });
           }
         }
-
 
         return output;
       }
