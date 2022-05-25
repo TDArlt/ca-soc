@@ -9,12 +9,19 @@ export default ({ app, router, store, Vue }) => {
     /**
      * Perform a http get request using the pull-engine (avoiding cors-problems)
      * @param {string} url the URL for this request
+     * @param {boolean} gzipped set to true, if you expect a gzipped response
      * @returns the data of the http request
      */
-    app.config.globalProperties.$httpPulledGet = async function(url)
+    app.config.globalProperties.$httpPulledGet = async function(url, gzipped = false)
     {
         url = url.replace("https://", "");
-        return (await Http.get(config.pullPath + "?url=" + encodeURI(url))).data;
+        let zip = '';
+        if (gzipped)
+        {
+            zip = "&gzip=1"
+        }
+        console.log(config.pullPath + "?url=" + encodeURI(url));
+        return (await Http.get(config.pullPath + "?url=" + encodeURI(url) + zip)).data;
     };
     
 
@@ -22,12 +29,18 @@ export default ({ app, router, store, Vue }) => {
      * Perform a http post request using the pull-engine (avoiding cors-problems)
      * @param {string} url the URL for this request
      * @param {object} postVar the data for this post request
+     * @param {boolean} gzipped set to true, if you expect a gzipped response
      * @returns the data of the http request
      */
-    app.config.globalProperties.$httpPulledPost = async function(url, postVar)
+    app.config.globalProperties.$httpPulledPost = async function(url, postVar, gzipped = false)
     {
         url = url.replace("https://", "");
-        return (await Http.post(config.pullPath + "?url=" + encodeURI(url), postVar)).data;
+        let zip = '';
+        if (gzipped)
+        {
+            zip = "&gzip=1"
+        }
+        return (await Http.post(config.pullPath + "?url=" + encodeURI(url) + zip, postVar)).data;
     };
 
      

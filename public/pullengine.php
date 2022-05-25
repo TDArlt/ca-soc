@@ -39,6 +39,11 @@ $opts = array('http' =>
 );
 $context = stream_context_create($opts);
 $result = file_get_contents($url, false, $context);
+
+if (isset($_GET['gzip']))
+{
+    $result = gzdecode($result);
+}
 echo $result;
 
 /**/
