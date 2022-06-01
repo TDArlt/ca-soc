@@ -1,11 +1,11 @@
-# CA-SoC
+# CA-SOC
 
 This project is under initial construction at the moment.
 
 
 ## General information
 
-This is a custom SoC website fulfilling the needs of the company I work in.
+This is a custom Security Operation Center website fulfilling the needs of the company I work in.
 
 It collects data from external services and websites and visualizes it centrally.
 

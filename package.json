@@ -1,8 +1,8 @@
 {
   "name": "ca-soc",
   "version": "0.0.1",
-  "description": "A tailormade SoC",
-  "productName": "CA-SoC",
+  "description": "A tailormade Security Operation Center",
+  "productName": "CA-SOC",
   "author": "Christian Arlt <developer@chris.arlt.io>",
   "private": true,
   "scripts": {

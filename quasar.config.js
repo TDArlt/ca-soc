@@ -141,9 +141,9 @@ module.exports = configure(function (ctx) {
       
 
       manifest: {
-        name: `CA-SoC`,
-        short_name: `CA-SoC`,
-        description: `A tailormade SoC`,
+        name: `CA-SOC`,
+        short_name: `CA-SOC`,
+        description: `A tailormade Security Operation Center`,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#ffffff',
