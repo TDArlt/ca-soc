@@ -63,10 +63,33 @@ export const useListsStore = defineStore(
 
       setKnownExploitedVulns(newList)
       {
-        const copyOfData = newList;
+        let storeFormat = [];
+
+        for (let index = 0; index < newList.vulnerabilities.length; index++)
+        {
+          let element = {
+            id: newList.vulnerabilities[index].cveID,
+            description: newList.vulnerabilities[index].shortDescription,
+            publishedOn: new Date(newList.vulnerabilities[index].dateAdded),
+            requiredAction: newList.vulnerabilities[index].requiredAction,
+            affected: [
+              {
+                cpe32Uri: newList.vulnerabilities[index].vendorProject + ':' + newList.vulnerabilities[index].product,
+                vendor: newList.vulnerabilities[index].vendorProject,
+                product: newList.vulnerabilities[index].product,
+                version: '',
+              }
+            ],
+            affectedAsString: newList.vulnerabilities[index].vendorProject + ':' + newList.vulnerabilities[index].product,
+          };
+
+          storeFormat.push(element);
+          
+        }
+
   
-        try { LocalStorage.set('knownExploitedVulns', copyOfData); } catch (error)  { console.log("Could not store known exploited vulnerabilities locally (not enough memory)"); }
-        this.knownExploitedVulns = copyOfData;
+        try { LocalStorage.set('knownExploitedVulns', storeFormat); } catch (error)  { console.log("Could not store known exploited vulnerabilities locally (not enough memory)"); }
+        this.knownExploitedVulns = storeFormat;
       },
 
 

@@ -1,4 +1,4 @@
-import { date } from 'quasar';
+import { Notify, date } from 'quasar';
 import config from '../config';
 import Http from 'axios';
 import { useListsStore } from "stores/listsstore";
@@ -88,10 +88,16 @@ export default ({ app, router, store, Vue }) => {
 
             dl = await app.config.globalProperties.$httpPulledGet("https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json");
             lStore.setKnownExploitedVulns(dl);
-            console.log(dl);
-            console.log(lStore.knownExploitedVulns);
 
             lStore.cacheUpdated();
+
+            
+      
+            Notify.create({
+                message: 'Die CVE-Listen wurden neu geladen.',
+                color: 'positive',
+                icon: 'done'
+            });
         }
     };
 }

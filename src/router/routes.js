@@ -4,7 +4,9 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      { path: '', component: () => import('pages/VulnDashboard.vue') },
+      { path: 'vuln-dashboard', component: () => import('pages/VulnDashboard.vue') },
+      { path: 'faz-soc', component: () => import('pages/FAZSOC.vue') },
     ]
   },
 
