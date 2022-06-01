@@ -50,6 +50,42 @@
             </q-td>
           </template>
 
+          <template v-else-if="props.col.name == 'subject'">
+            <q-td :props="props" style="cursor: pointer;">
+              {{props.value}}
+              <q-menu
+                touch-position
+              >
+
+                <q-list style="min-width: 100px">
+                  <q-item>
+                    <q-item-section>
+                      <q-item-label>
+                        {{props.row.subject}}
+                      </q-item-label>
+                      <q-item-label caption>
+                        {{props.row.extrainfo}}
+                      </q-item-label>
+                      
+                    </q-item-section>
+
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable v-close-popup>
+                    <q-item-section avatar>
+                      <q-icon name="approval" />
+                    </q-item-section>
+                    <q-item-section>
+                      Acknowledge
+                    </q-item-section>
+                  </q-item>
+                </q-list>
+
+              </q-menu>
+            </q-td>
+          </template>
+
+
           <template v-else-if="props.col.name == 'cveid'">
             <q-td :props="props" style="white-space: unset; max-width: 400px;">
                 <q-icon
@@ -148,6 +184,35 @@
                 <q-chip color="grey" text-color="white" size="sm">
                   <q-avatar color="grey-10" text-color="white">{{props.row.impactScore}}</q-avatar>
                   LOW
+                </q-chip>
+              </template>
+            </q-td>
+          </template>
+          <template v-else-if="props.col.name == 'severity'">
+            <q-td :props="props" style="white-space: unset; max-width: 400px;">
+              <template v-if="props.value == 'low'">
+                <q-chip color="indigo" text-color="white" size="sm">
+                  LOW
+                </q-chip>
+              </template>
+              <template v-else-if="props.value == 'medium'">
+                <q-chip color="yellow" text-color="black" size="sm">
+                  MEDIUM
+                </q-chip>
+              </template>
+              <template v-else-if="props.value == 'high'">
+                <q-chip color="orange" text-color="white" size="sm">
+                  HIGH
+                </q-chip>
+              </template>
+              <template v-else-if="props.value == 'critical'">
+                <q-chip color="red" text-color="white" size="sm">
+                  CRITICAL
+                </q-chip>
+              </template>
+              <template v-else>
+                <q-chip color="grey" text-color="white" size="sm">
+                  {{props.value}}
                 </q-chip>
               </template>
             </q-td>
