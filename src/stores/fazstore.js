@@ -9,6 +9,11 @@ export const useFAZStore = defineStore(
       apiUser: (LocalStorage.getItem('fazApiUser') || ""),
       fazUrl: (LocalStorage.getItem('fazUrl') || ""),
 
+      fazPasswordMayStore: (LocalStorage.getItem('fazPasswordMayStore') || false),
+
+      // Do not ever think about storing the password in the local storage! Only on runtime in the cache!
+      fazPassword: '',
+
     }),
     
     getters: {
@@ -23,6 +28,10 @@ export const useFAZStore = defineStore(
         return this.apiUser;
       },
       
+      getMayStorePwd()
+      {
+        return this.fazPasswordMayStore;
+      },
 
     },
 
@@ -34,6 +43,14 @@ export const useFAZStore = defineStore(
   
         LocalStorage.set('fazApiUser', copyOfData);
         this.apiUser = copyOfData;
+      },
+
+      storeMayStorePwd(data)
+      {
+        const copyOfData = data;
+  
+        LocalStorage.set('fazPasswordMayStore', copyOfData);
+        this.fazPasswordMayStore = copyOfData;
       },
 
 

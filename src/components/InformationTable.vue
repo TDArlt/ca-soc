@@ -1,31 +1,79 @@
 <template>
   <div class="q-pa-sm">
     <q-card>
-      <q-card-section class="bg-secondary text-white row">
-        <div class="text-h6 col-6">{{title}}</div>
+      <q-card-section class="bg-secondary text-primary">
+        <q-item dense>
+          <q-item-section avatar v-if="icon != ''">
+            <q-icon color="primary" size="md" :name="icon" />
+          </q-item-section>
+          <q-item-section>
+            <q-item-label class="text-h6">{{title}}</q-item-label>
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label>
+              <q-input
+                class="q-pr-md col-6"
+                label-color="primary"
+                dense v-model="tableFilterStr"
+                type="text" label="Search"
+                clearable
+                >
+                <template v-slot:append>
+                  <q-icon name="search" />
+                </template>
+              </q-input>
+            </q-item-label>
+          </q-item-section>
+
+          <q-item-section v-if="acknowledeable" side>
+            <q-btn
+              color="primary" outline no-caps
+              :label="showAcknowledged ? 'Hide acknowledged' : 'Show acknowleged'"
+              @click="showAcknowledged = !showAcknowledged"
+              />
+          </q-item-section>
+
+          <q-item-section side v-if="actions.length > 0">
+            <q-item-label>
+              <q-btn-dropdown
+                color="primary" flat dense no-caps
+                :label="actionbtnLbl" :disable="selectedRows.length == 0"
+                >
+                      
+                  <q-list separator  style="min-width: 100px">
+                    <template v-for="action in actions" :key="action.label">
+                      <q-item clickable @click="action.method(selectedRows)" v-close-popup>
+                        <q-item-section avatar>
+                          <q-icon :name="action.icon" />
+                        </q-item-section>
+                        <q-item-section>
+                          {{action.label}}
+                        </q-item-section>
+                      </q-item>
+                    </template>
+                  </q-list>
+              </q-btn-dropdown>
+            </q-item-label>
+
+          </q-item-section>
+        </q-item>
           
-        <q-input
-          class="q-pr-md col-6" dark
-          label-color="white"
-          dense v-model="tableFilter"
-          type="text" label="Search"
-          clearable
-          >
-          <template v-slot:append>
-            <q-icon name="search" />
-          </template>
-        </q-input>
       </q-card-section>
+
       <q-card-section>
         <q-table
-          dense
+          dense flat
           :rows="data"
           :columns="columns"
           :pagination="pagination"
           :filter="tableFilter"
           :filter-method="filterTable"
-          row-key="name"
+          :row-key="rowKey"
           binary-state-sort
+
+          :selection="selectable ? 'multiple' : undefined"
+          v-model:selected="selectedRows"
         >
         
         <template v-slot:body-cell="props">
@@ -53,35 +101,20 @@
           <template v-else-if="props.col.name == 'subject'">
             <q-td :props="props" style="cursor: pointer;">
               {{props.value}}
-              <q-menu
-                touch-position
-              >
-
-                <q-list style="min-width: 100px">
-                  <q-item>
+              <q-tooltip>
+                <q-item>
                     <q-item-section>
-                      <q-item-label>
+                      <q-item-label class="text-overline">
                         {{props.row.subject}}
                       </q-item-label>
-                      <q-item-label caption>
+                      <q-item-label class="text-caption">
                         {{props.row.extrainfo}}
                       </q-item-label>
                       
                     </q-item-section>
 
                   </q-item>
-                  <q-separator />
-                  <q-item clickable v-close-popup>
-                    <q-item-section avatar>
-                      <q-icon name="approval" />
-                    </q-item-section>
-                    <q-item-section>
-                      Acknowledge
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-
-              </q-menu>
+              </q-tooltip>
             </q-td>
           </template>
 
@@ -231,7 +264,8 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent } from 'vue';
+import { useListsStore } from "stores/listsstore";
 
 export default defineComponent({
   name: 'InformationTable',
@@ -239,6 +273,10 @@ export default defineComponent({
     title: {
       type: String,
       default: "A table",
+    },
+    icon: {
+      type: String,
+      default: "",
     },
 
     data: {
@@ -249,8 +287,24 @@ export default defineComponent({
       type: Array,
       default: [],
     },
+    rowKey: {
+      type: String,
+      required: true,
+    },
     defaultLines: {
       default: 20,
+    },
+
+    acknowledeable: {
+      default: false,
+    },
+
+    selectable: {
+      default: false,
+    },
+
+    actions: {
+      default: [],
     },
   },
 
@@ -260,46 +314,106 @@ export default defineComponent({
         rowsPerPage: this.defaultLines
       },
 
-      tableFilter: '',
+      tableFilterStr: '',
+
+      selectedRows: [],
+
+      showAcknowledged: false,
     }
+  },
+
+
+  computed: {
+
+    actionbtnLbl()
+    {
+      if (this.selectedRows.length == 0)
+      {
+        return "No record selected";
+      } else if (this.selectedRows.length == 1)
+      {
+        return "Perform action";
+      } else
+      {
+        return "Perform action on " + this.selectedRows.length + " records"
+      }
+    },
+
+
+    tableFilter()
+    {
+      if (this.tableFilterStr == '')
+      {
+        return ' ';
+      }
+
+      return this.tableFilterStr;
+    },
+
   },
 
 
 
   methods: {
+
+
+    unsetSelection()
+    {
+      this.selectedRows = [];
+    },
     
 
     filterTable (rows, terms, cols = this.computedCols, cellValue = this.getCellValue)
     {
-      if (this.unassigned || terms.trim() == '')
+      if ((this.unassigned || terms.trim() == '') && (!this.acknowledeable || this.showAcknowledged))
       {
         return rows;
       }
 
+      const unfiltered = (this.unassigned || terms.trim() == '');
+      if (unfiltered)
+      {
+        terms = '';
+      }
+
       const lowerTerms = terms ? terms.toLowerCase() : '';
       const lookFor = lowerTerms.trim().split(' ');
+      const lStore = useListsStore();
 
       return rows.filter(
         row => {
 
-          let haystack = "";
-
-          for (let cIndex = 0; cIndex < cols.length; cIndex++)
+          if (this.acknowledeable && !this.showAcknowledged)
           {
-            const val = cellValue(cols[cIndex], row) + '';
-            if (val !== 'undefined' && val !== 'null')
-            {
-              haystack += " " + val.toLowerCase();
-            }
-          }
 
-          for (let index = 0; index < lookFor.length; index++)
-          {
-            if (lookFor[index].trim() != '' && haystack.indexOf(lookFor[index].trim()) === -1)
+            if (lStore.cveIsAcknowledged(row.id, row.publishedOn, row.modifiedOn))
             {
               return false;
             }
           }
+
+          if (!unfiltered)
+          {
+            let haystack = "";
+
+            for (let cIndex = 0; cIndex < cols.length; cIndex++)
+            {
+              const val = cellValue(cols[cIndex], row) + '';
+              if (val !== 'undefined' && val !== 'null')
+              {
+                haystack += " " + val.toLowerCase();
+              }
+            }
+
+            for (let index = 0; index < lookFor.length; index++)
+            {
+              if (lookFor[index].trim() != '' && haystack.indexOf(lookFor[index].trim()) === -1)
+              {
+                return false;
+              }
+            }
+          }
+
 
           return true;
         }

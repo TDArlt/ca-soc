@@ -11,13 +11,18 @@
       <q-card-section class="q-pa-xs row">
 
         <template v-if="!loading">
-          <template v-for="table in informationTables" :key="table.title">
+          <template v-for="(table, index) in informationTables" :key="table.title">
             <InformationTable
+              :ref="'table' + index"
               :class="table.class"
               :title="table.title"
               :columns="table.columns"
               :data="table.dataset"
+              :rowKey="table.rowKey"
               :defaultLines="table.lines"
+              :selectable="table.selectable"
+              :actions="table.actions"
+              :icon="table.icon"
             />
           </template>
         </template>
@@ -34,7 +39,23 @@
 
       <q-card-section class="row">
         <div class="text-caption col-10">
-          Connected to {{this.$fazStore.getUrl}}
+          <template v-if="this.$fazStore.getUrl != ''">
+            <template v-if="!fazNeedsReconnect">
+              Connected to {{this.$fazStore.getUrl}}
+            </template>
+            <template v-else>
+              Currently not connected to {{this.$fazStore.getUrl}}. Press reload to retry or "Reset connection" to re-enter all connection information.
+            </template>
+            <br />
+            <q-checkbox dense :model-value="$fazStore.getMayStorePwd" label="Store unencrypted password in local browser cache" @update:model-value="changePwdStoreOption" />
+            <div v-if="$fazStore.getMayStorePwd" class="text-orange-8">
+              <q-icon name="warning" />
+              This is only recommended if you are very sure that you are the only one having access to this browser's cache.
+            </div>
+          </template>
+          <template v-else>
+            Not connected to any FortiAnalyzer
+          </template>
         </div>
         <q-btn
           class="col-2"
@@ -72,14 +93,22 @@ export default defineComponent({
             { name: "subject", label: "Subject", field: "subject", align: "left", sortable: true },
             { name: "alerttime", label: "Alert Time", field: "alerttime", align: "left", sortable: true, format: (val, row) => date.formatDate(new Date(val*1000), "YYYY/MM/DD"), },
             
-            { name: "epip", label: "Endpoint", field: "epip", align: "left", sortable: true, format: (val, row) => row.epip + ' ' + row.epname, }, 
+            { name: "epip", label: "Endpoint", field: "epip", align: "left", sortable: true, format: (val, row) => row.epip == undefined ? "N/A" : (row.epip + (row.epname != row.epip ? (' (' + row.epname + ')') : "")), }, 
             { name: "groupby1", label: "Connected to (1)", field: "groupby1", align: "left", sortable: true },
             { name: "groupby2", label: "Connected to (2)", field: "groupby2", align: "left", sortable: true },
 
           ],
           dataset: [],
+          rowKey: "alertid",
           lines: 10,
+          icon: 'receipt_long',
           class: "col-6 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6",
+
+          selectable: true,
+          actions: [
+            { icon: 'task_alt', label: "Acknowledge selected events", method: this.acknowledgeEvents, },
+            { icon: 'report', label: "Create incident from selected events", method: this.createIncidentFromEvents, },
+          ]
         },
         
         {
@@ -94,7 +123,9 @@ export default defineComponent({
             { name: "endpoint", label: "Endpoint", field: "endpoint", align: "left", sortable: true, }, 
           ],
           dataset: [],
+          rowKey: "incid",
           lines: 5,
+          icon: 'report',
           class: "col-6 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6",
         },
         
@@ -141,6 +172,7 @@ export default defineComponent({
       this.$fazStore.storeURL('');
       this.fazSessionKey = '';
       fazLastConnect = null;
+      this.$fazStore.fazPassword = '';
 
       this.loadTables();
     },
@@ -193,19 +225,25 @@ export default defineComponent({
           });
         } else
         {
-          this.$q.dialog({
-            title: 'FortiAnalyzer API Password',
-            message: 'Please enter the password for the API user ' + this.$fazStore.getUser + ' on ' + this.$fazStore.getUrl,
-            prompt: {
-              model: '',
-              type: 'password',
-            },
-            cancel: true,
-            persistent: true
-          }).onOk(data => {
+          if (this.$fazStore.getMayStorePwd && this.$fazStore.fazPassword != '')
+          {
+            this.recreateSession(this.$fazStore.fazPassword, triggerReloadAfterwards);
+          } else
+          {
+            this.$q.dialog({
+              title: 'FortiAnalyzer API Password',
+              message: 'Please enter the password for the API user ' + this.$fazStore.getUser + ' on ' + this.$fazStore.getUrl,
+              prompt: {
+                model: '',
+                type: 'password',
+              },
+              cancel: true,
+              persistent: true
+            }).onOk(data => {
 
-            this.recreateSession(data, triggerReloadAfterwards);
-          });
+              this.recreateSession(data, triggerReloadAfterwards);
+            });
+          }
         }
 
       }
@@ -243,6 +281,11 @@ export default defineComponent({
                 icon: 'cloud_sync'
             }));
 
+          if (this.$fazStore.getMayStorePwd)
+          {
+            this.$fazStore.fazPassword = pwd;
+          }
+
 
 
           if (triggerReloadAfterwards)
@@ -273,9 +316,13 @@ export default defineComponent({
 
 
 
-    async loadTables(force = false)
+    async loadTables(force = false, hideTablesWhileLoading = true)
     {
-      this.loading = true;
+      if (hideTablesWhileLoading)
+      {
+        this.loading = true;
+      }
+      
       if (this.fazNeedsReconnect)
       {
         this.connectToFAZ(true);
@@ -324,6 +371,136 @@ export default defineComponent({
       
       
     },
+
+
+
+
+
+    async acknowledgeEvents(eventArray)
+    {
+      if (this.fazNeedsReconnect)
+      {
+        this.connectToFAZ();
+        
+        for (let index = 0; index < 20; index++)
+        {
+          if (this.fazNeedsReconnect)
+          {
+            await new Promise(res => setTimeout(res, 1000));
+          }
+        }
+      }
+
+      // Should be connected by now, but in case of not, show warning
+      if (this.fazNeedsReconnect)
+      {
+        this.$q.notify(({
+                message: 'Not connected to FortiAnalyzer! Cannot acknowledge selected events.',
+                color: 'negative',
+                icon: 'sync_problem'
+            }));
+      }
+
+      this.$q.loading.show();
+
+
+      let data = {
+        "id": "1",
+        "jsonrpc": "2.0",
+        "method": "update",
+        "params": [
+          {
+            "alertid": [],
+            "apiver": 3,
+            "update-by": this.$fazStore.getUser,
+            "url": "/eventmgmt/adom/root/alerts/ack"
+          }
+        ],
+        "session": this.fazSessionKey,
+      };
+
+      for (let index = 0; index < eventArray.length; index++)
+      {
+        data.params[0].alertid.push(eventArray[index].alertid);
+      }
+
+      try {
+        await this.$httpPulledPost(this.$fazStore.getUrl + '/jsonrpc', data);
+
+
+        this.$q.notify(({
+                message: 'Acknowledged ' + (eventArray.length == 1 ? "one event" : (eventArray.length + " events")),
+                color: 'positive',
+                icon: 'task_alt'
+            }));
+
+      } catch (error) {
+        
+        this.$q.notify(({
+                message: 'Oops. Something went wrong while updating :-(',
+                color: 'negative',
+                icon: 'sync_problem'
+            }));
+      }
+
+      await this.loadTables(true, false);
+      this.$refs['table0'][0].unsetSelection();
+
+
+
+
+      this.$q.loading.hide();
+
+    },
+
+
+
+
+
+
+
+
+    async createIncidentFromEvents(eventArray)
+    {
+      //TODO: Create incident
+      console.log(eventArray);
+    },
+
+
+
+
+
+
+
+
+
+    changePwdStoreOption(val)
+    {
+      this.$fazStore.storeMayStorePwd(val);
+
+      if (!val)
+      {
+        this.$fazStore.fazPassword = '';
+        
+        this.$q.notify(({
+              message: 'Removed password from browser cache',
+              color: 'positive',
+              icon: 'lock'
+          }));
+      } else
+      {
+        this.$q.notify(({
+              message: 'Password will be stored in browser cache the next time you enter it',
+              color: 'positive',
+              icon: 'lock_open'
+          }));
+        this.$q.notify(({
+              message: 'Note that the password will only persist for a browser session.',
+              color: 'info',
+              icon: 'key'
+          }));
+      }
+    }
 
 
 
