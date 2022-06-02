@@ -11,13 +11,19 @@
       <q-card-section class="q-pa-xs row">
 
         <template v-if="!loading">
-          <template v-for="table in informationTables" :key="table.title">
+          <template v-for="(table, index) in informationTables" :key="table.title">
             <InformationTable
+              :ref="'table' + index"
               :class="table.class"
               :title="table.title"
               :columns="table.columns"
               :data="table.dataset"
+              :rowKey="table.rowKey"
               :defaultLines="table.lines"
+              :selectable="table.selectable"
+              :actions="table.actions"
+              :icon="table.icon"
+              :acknowledeable="table.acknowledeable"
             />
           </template>
         </template>
@@ -31,13 +37,18 @@
         </template>
 
       </q-card-section>
+
+      <q-card-section class="text-caption text-grey">
+        <q-icon name="info" />
+        The acknowledment is stored locally on your device, but preserved in the browser data (so it behaves like a cookie).
+      </q-card-section>
     </q-card>
   </q-page>
 </template>
 
 <script>
 import { defineComponent } from 'vue';
-import { Notify, date, useQuasar } from 'quasar';
+import { date, useQuasar } from 'quasar';
 import InformationTable from 'components/InformationTable.vue'
 import { useListsStore } from "stores/listsstore";
 
@@ -61,7 +72,15 @@ export default defineComponent({
           ],
           dataset: [],
           lines: 10,
+          rowKey: "id",
+          icon: "warning",
           class: "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-4",
+          acknowledeable: true,
+          
+          selectable: true,
+          actions: [
+            { icon: 'task_alt', label: "Acknowledge selected vulnearbilites", method: this.acknowledge, },
+          ]
         },
         
         {
@@ -78,7 +97,15 @@ export default defineComponent({
           ],
           dataset: [],
           lines: 5,
+          rowKey: "id",
+          icon: "sync_problem",
           class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
+          acknowledeable: true,
+          
+          selectable: true,
+          actions: [
+            { icon: 'task_alt', label: "Acknowledge selected vulnearbilites", method: this.acknowledge, },
+          ]
         },
         
         {
@@ -95,7 +122,15 @@ export default defineComponent({
           ],
           dataset: [],
           lines: 5,
+          rowKey: "id",
+          icon: "running_with_errors",
           class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
+          acknowledeable: true,
+          
+          selectable: true,
+          actions: [
+            { icon: 'task_alt', label: "Acknowledge selected vulnearbilites", method: this.acknowledge, },
+          ]
         },
       ]
     }
@@ -144,6 +179,28 @@ export default defineComponent({
 
       this.loading = false;
     },
+
+
+
+    acknowledge(cveEntry)
+    {
+      const lStore = useListsStore();
+
+      for (let index = 0; index < cveEntry.length; index++)
+      {
+        lStore.addAcknowledgedCVE({
+          id: cveEntry[index].id,
+          modifiedOn: cveEntry[index].modifiedOn,
+          publishedOn: cveEntry[index].publishedOn,
+        });
+      }
+
+      
+      for (let index = 0; index < this.informationTables.length; index++)
+      {
+        this.$refs['table' + index][0].unsetSelection();
+      }
+    }
   },
 
 

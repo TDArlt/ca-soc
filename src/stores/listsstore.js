@@ -71,6 +71,7 @@ export const useListsStore = defineStore(
             id: newList.vulnerabilities[index].cveID,
             description: newList.vulnerabilities[index].shortDescription,
             publishedOn: new Date(newList.vulnerabilities[index].dateAdded),
+            modifiedOn: new Date(newList.vulnerabilities[index].dateAdded),
             requiredAction: newList.vulnerabilities[index].requiredAction,
             affected: [
               {
@@ -90,6 +91,36 @@ export const useListsStore = defineStore(
   
         try { LocalStorage.set('knownExploitedVulns', storeFormat); } catch (error)  { console.log("Could not store known exploited vulnerabilities locally (not enough memory)"); }
         this.knownExploitedVulns = storeFormat;
+      },
+
+
+
+      addAcknowledgedCVE(cve)
+      {
+        if (!this.cveIsAcknowledged(cve.id, cve.publishedOn, cve.modifiedOn))
+        {
+          this.acknowledgedCVEIDs.push(cve);
+          
+          LocalStorage.set('acknowledgedCVEs', this.acknowledgedCVEIDs);
+        }
+      },
+
+      
+
+
+      cveIsAcknowledged(id, publishedOn, modifiedOn)
+      {
+        for (let index = 0; index < this.acknowledgedCVEIDs.length; index++)
+        {
+          if (this.acknowledgedCVEIDs[index].id == id &&
+            this.acknowledgedCVEIDs[index].publishedOn == publishedOn &&
+            this.acknowledgedCVEIDs[index].modifiedOn == modifiedOn)
+          {
+            return true;
+          }
+        }
+
+        return false;
       },
 
 
