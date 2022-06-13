@@ -194,7 +194,7 @@ export default ({ app, router, store, Vue }) => {
                     lStore.setKnownExploitedVulns(dl);
                     updateCount++;
                 } catch (error) {
-                    
+                    console.log("Failed to enrich " + dl.vulnerabilities[index].cveID + " - probably too many api requests in a too short period of time.");
                 }
             }
         }
