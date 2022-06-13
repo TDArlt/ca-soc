@@ -84,6 +84,13 @@ export const useListsStore = defineStore(
             affectedAsString: newList.vulnerabilities[index].vendorProject + ':' + newList.vulnerabilities[index].product,
           };
 
+          if (newList.vulnerabilities[index].cveInfo != undefined)
+          {
+            element.impactScore = newList.vulnerabilities[index].cveInfo.impactScore;
+            element.impactSeverity = newList.vulnerabilities[index].cveInfo.impactSeverity;
+            element.reference = newList.vulnerabilities[index].cveInfo.reference;
+          }
+
           storeFormat.push(element);
           
         }
@@ -113,8 +120,8 @@ export const useListsStore = defineStore(
         for (let index = 0; index < this.acknowledgedCVEIDs.length; index++)
         {
           if (this.acknowledgedCVEIDs[index].id == id &&
-            this.acknowledgedCVEIDs[index].publishedOn == publishedOn &&
-            this.acknowledgedCVEIDs[index].modifiedOn == modifiedOn)
+            date.formatDate(this.acknowledgedCVEIDs[index].publishedOn, "YYYYMMDDHHmmss") == date.formatDate(publishedOn, "YYYYMMDDHHmmss") &&
+            date.formatDate(this.acknowledgedCVEIDs[index].modifiedOn, "YYYYMMDDHHmmss") == date.formatDate(modifiedOn, "YYYYMMDDHHmmss"))
           {
             return true;
           }
