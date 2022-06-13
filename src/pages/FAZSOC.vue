@@ -20,6 +20,8 @@
               :data="table.dataset"
               :rowKey="table.rowKey"
               :defaultLines="table.lines"
+              :defaultSort="table.sort"
+              :sortDescending="table.sortDescending"
               :selectable="table.selectable"
               :actions="table.actions"
               :icon="table.icon"
