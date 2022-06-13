@@ -168,17 +168,19 @@
           </template>
           <template v-else-if="props.col.name == 'reference'">
             <q-td :props="props" style="white-space: unset; max-width: 400px;">
-              <template v-for="url in props.value.split('\n')" :key="props.row.id + url">
-                <q-icon
-                  v-if="url.trim() != ''"
-                  name="open_in_new"
-                  @click="openWindow(url)"
-                  style="cursor: pointer;"
-                  >
-                  <q-tooltip>
-                    {{url}}
-                  </q-tooltip>
-                </q-icon>
+              <template v-if="props.value != undefined">
+                <template v-for="url in props.value.split('\n')" :key="props.row.id + url">
+                  <q-icon
+                    v-if="url.trim() != ''"
+                    name="open_in_new"
+                    @click="openWindow(url)"
+                    style="cursor: pointer;"
+                    >
+                    <q-tooltip>
+                      {{url}}
+                    </q-tooltip>
+                  </q-icon>
+                </template>
               </template>
             </q-td>
           </template>
@@ -215,8 +217,7 @@
               </template>
               <template v-else>
                 <q-chip color="grey" text-color="white" size="sm">
-                  <q-avatar color="grey-10" text-color="white">{{props.row.impactScore}}</q-avatar>
-                  LOW
+                  (Loading...)
                 </q-chip>
               </template>
             </q-td>
@@ -294,6 +295,11 @@ export default defineComponent({
     defaultLines: {
       default: 20,
     },
+    defaultSort: {
+    },
+    sortDescending: {
+      default: true,
+    },
 
     acknowledeable: {
       default: false,
@@ -311,7 +317,9 @@ export default defineComponent({
   data() {
     return {
       pagination: {
-        rowsPerPage: this.defaultLines
+        rowsPerPage: this.defaultLines,
+        sortBy: this.defaultSort,
+        descending: this.sortDescending,
       },
 
       tableFilterStr: '',
@@ -385,7 +393,6 @@ export default defineComponent({
 
           if (this.acknowledeable && !this.showAcknowledged)
           {
-
             if (lStore.cveIsAcknowledged(row.id, row.publishedOn, row.modifiedOn))
             {
               return false;
