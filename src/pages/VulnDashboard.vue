@@ -20,6 +20,8 @@
               :data="table.dataset"
               :rowKey="table.rowKey"
               :defaultLines="table.lines"
+              :defaultSort="table.sort"
+              :sortDescending="table.sortDescending"
               :selectable="table.selectable"
               :actions="table.actions"
               :icon="table.icon"
@@ -40,7 +42,8 @@
 
       <q-card-section class="text-caption text-grey">
         <q-icon name="info" />
-        The acknowledment is stored locally on your device, but preserved in the browser data (so it behaves like a cookie).
+        The acknowledment is stored locally on your device, but preserved in the browser data (so it behaves like a cookie).<br />
+        This product uses the NVD API but is not endorsed or certified by the NVD.
       </q-card-section>
     </q-card>
   </q-page>
@@ -65,13 +68,17 @@ export default defineComponent({
           title: "Known exploited vulnerabilites",
           columns: [
             { name: "cveid", label: "CVE Number", field: "id", align: "left", sortable: true },
+            { name: "score", label: "Severity", field: "impactScore", align: "left", sortable: true, format: (val, row) => (row.impactScore + " [" + row.impactSeverity + "]") },
             { name: "description", label: "Description", field: "description", align: "left", sortable: false },
             { name: "affected", label: "Affected", field: "affectedAsString", align: "left", sortable: true },
+            { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
             { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
             
           ],
           dataset: [],
           lines: 10,
+          sort: 'publishedOn',
+          sortDescending: true,
           rowKey: "id",
           icon: "warning",
           class: "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-4",
@@ -97,6 +104,8 @@ export default defineComponent({
           ],
           dataset: [],
           lines: 5,
+          sort: 'modifiedOn',
+          sortDescending: true,
           rowKey: "id",
           icon: "sync_problem",
           class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
@@ -122,6 +131,8 @@ export default defineComponent({
           ],
           dataset: [],
           lines: 5,
+          sort: 'modifiedOn',
+          sortDescending: true,
           rowKey: "id",
           icon: "running_with_errors",
           class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
