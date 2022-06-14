@@ -6,7 +6,7 @@ export const useListsStore = defineStore(
   {
     state: () => ({
 
-      acknowledgedCVEIDs: (LocalStorage.getItem('acknowledgedCVEs') || []),
+      acknowledgedCVEIDs: (LocalStorage.getItem('acknowledgedCVEs') || {}),
 
       lastCacheUpdate: (LocalStorage.getItem('lastCacheUpdate') || null),
 
@@ -106,10 +106,19 @@ export const useListsStore = defineStore(
       {
         if (!this.cveIsAcknowledged(cve.id, cve.publishedOn, cve.modifiedOn))
         {
-          this.acknowledgedCVEIDs.push(cve);
+          this.acknowledgedCVEIDs[cve.id] = {
+            publishedOn: cve.publishedOn,
+            modifiedOn: cve.modifiedOn
+          };
           
           LocalStorage.set('acknowledgedCVEs', this.acknowledgedCVEIDs);
         }
+      },
+
+      clearAcknowledged()
+      {
+        this.acknowledgedCVEIDs = {};
+        LocalStorage.set('acknowledgedCVEs', {});
       },
 
       
@@ -117,11 +126,11 @@ export const useListsStore = defineStore(
 
       cveIsAcknowledged(id, publishedOn, modifiedOn)
       {
-        for (let index = 0; index < this.acknowledgedCVEIDs.length; index++)
+        if (Object.keys(this.acknowledgedCVEIDs).indexOf(id) !== -1)
         {
-          if (this.acknowledgedCVEIDs[index].id == id &&
-            date.formatDate(this.acknowledgedCVEIDs[index].publishedOn, "YYYYMMDDHHmmss") == date.formatDate(publishedOn, "YYYYMMDDHHmmss") &&
-            date.formatDate(this.acknowledgedCVEIDs[index].modifiedOn, "YYYYMMDDHHmmss") == date.formatDate(modifiedOn, "YYYYMMDDHHmmss"))
+          if (
+            date.formatDate(this.acknowledgedCVEIDs[id].publishedOn, "YYYYMMDDHHmmss") == date.formatDate(publishedOn, "YYYYMMDDHHmmss") &&
+            date.formatDate(this.acknowledgedCVEIDs[id].modifiedOn, "YYYYMMDDHHmmss") == date.formatDate(modifiedOn, "YYYYMMDDHHmmss"))
           {
             return true;
           }
