@@ -171,7 +171,7 @@ export default ({ app, router, store, Vue }) => {
                     let element = {
                         reference: "",
                         impactScore: 0,
-                        impactSeverity: "loading",
+                        impactSeverity: "UNKNOWN",
                     };
 
                     if (sCVE.result.CVE_Items[0].cve.references.reference_data.length > 0)
@@ -194,7 +194,17 @@ export default ({ app, router, store, Vue }) => {
                     lStore.setKnownExploitedVulns(dl);
                     updateCount++;
                 } catch (error) {
-                    console.log("Failed to enrich " + dl.vulnerabilities[index].cveID + " - probably too many api requests in a too short period of time.");
+
+                    let element = {
+                        reference: "",
+                        impactScore: 0,
+                        impactSeverity: "UNKNOWN",
+                    };
+
+                    dl.vulnerabilities[index].cveInfo = element;
+                    
+                    lStore.setKnownExploitedVulns(dl);
+                    updateCount++;
                 }
             }
         }
