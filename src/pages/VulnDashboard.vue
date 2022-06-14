@@ -42,7 +42,9 @@
 
       <q-card-section class="text-caption text-grey">
         <q-icon name="info" />
-        The acknowledment is stored locally on your device, but preserved in the browser data (so it behaves like a cookie).<br />
+        The acknowledment is stored locally on your device, but preserved in the browser data (so it behaves like a cookie).
+        <q-btn color="grey" no-caps flat label="Click to clear all acknowledgments" class="text-caption" size="sm" dense @click="clearAcks()" />
+        <br />
         This product uses the NVD API but is not endorsed or certified by the NVD.
       </q-card-section>
     </q-card>
@@ -211,7 +213,16 @@ export default defineComponent({
       {
         this.$refs['table' + index][0].unsetSelection();
       }
-    }
+    },
+
+    
+
+    clearAcks()
+    {
+      const lStore = useListsStore();
+      lStore.clearAcknowledged();
+    },
+
   },
 
 
