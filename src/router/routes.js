@@ -6,6 +6,7 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/VulnDashboard.vue') },
       { path: 'vuln-dashboard', component: () => import('pages/VulnDashboard.vue') },
+      { path: 'vuln-dashboard/:catchAll(.*)*', component: () => import('pages/VulnDashboard.vue') },
       { path: 'faz-soc', component: () => import('pages/FAZSOC.vue') },
     ]
   },

@@ -90,8 +90,12 @@ export default ({ app, router, store, Vue }) => {
             lStore.setModifiedCVEs(dl);
 
 
+            dl = await app.config.globalProperties.$httpPulledGet("https://wid.cert-bund.de/content/public/securityAdvisory?size=100&sort=published%2Cdesc&aboFilter=false");
+            lStore.setCertbundList(dl);
+
+
             dl = await app.config.globalProperties.$httpPulledGet("https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json");
-            
+
         
             for (let index = 0; index < dl.vulnerabilities.length; index++)
             {

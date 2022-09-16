@@ -142,6 +142,7 @@
                 <q-expansion-item
                   dense
                   style="width: 300px;"
+                  header-style="padding-left: 0px;"
                   :label="'Show ' + props.row.affected.length + ' affected products'"
                 >
                   <q-card>
@@ -149,7 +150,10 @@
                       <ul>
                         <template v-for="aff in props.row.affected" :key="props.row.id + aff.cpe32Uri">
                           <li>
-                            {{aff.vendor}}: {{aff.product}} {{aff.version}}
+                            <template v-if="aff.vendor != ''">
+                              {{aff.vendor}}:
+                            </template>
+                             {{aff.product}} {{aff.version}}
                           </li>
                         </template>
                       </ul>
@@ -161,7 +165,10 @@
                 (unknown)
               </template>
               <template v-else>
-                {{props.row.affected[0].vendor}}: {{props.row.affected[0].product}} {{props.row.affected[0].version}}
+                <template v-if="props.row.affected[0].vendor != ''">
+                  {{props.row.affected[0].vendor}}:
+                </template>
+                {{props.row.affected[0].product}} {{props.row.affected[0].version}}
               </template>
 
             </q-td>
@@ -184,6 +191,56 @@
               </template>
             </q-td>
           </template>
+          <template v-else-if="props.col.name == 'linkedCVEs'">
+            <q-td :props="props" style="white-space: unset; max-width: 400px;">
+              <template v-if="props.row.linkedCVEs.length > 1">
+                
+                <q-expansion-item
+                  dense
+                  style="width: 300px;"
+                  header-style="padding-left: 0px;"
+                  :label="'Show ' + props.row.linkedCVEs.length + ' linked CVEs'"
+                >
+                  <q-card>
+                    <q-card-section style="white-space: unset; max-width: 280px;">
+                      <ul>
+                        <template v-for="aff in props.row.linkedCVEs" :key="props.row.id + aff">
+                          <li>
+                            <q-icon
+                              name="open_in_new" size="xxs"
+                              @click="openWindow('https://nvd.nist.gov/vuln/detail/' + aff)"
+                              style="cursor: pointer;"
+                              >
+                              <q-tooltip>
+                                https://nvd.nist.gov/vuln/detail/{{aff}}
+                              </q-tooltip>
+                            </q-icon>
+                            {{aff}}
+                          </li>
+                        </template>
+                      </ul>
+                    </q-card-section>
+                  </q-card>
+                </q-expansion-item>
+              </template>
+              <template v-else-if="props.row.linkedCVEs.length == 0">
+                -
+              </template>
+              <template v-else>
+                <q-icon
+                  name="open_in_new" size="xxs"
+                  @click="openWindow('https://nvd.nist.gov/vuln/detail/' + props.row.linkedCVEs[0])"
+                  style="cursor: pointer;"
+                  >
+                  <q-tooltip>
+                    https://nvd.nist.gov/vuln/detail/{{props.row.linkedCVEs[0]}}
+                  </q-tooltip>
+                </q-icon>
+                {{props.row.linkedCVEs[0]}}
+              </template>
+
+            </q-td>
+          </template>
           <template v-else-if="props.col.name == 'score'">
             <q-td :props="props" style="white-space: unset; max-width: 400px;">
               <template v-if="props.row.impactSeverity == 'UNKNOWN'">
@@ -191,25 +248,25 @@
                   (unknown)
                 </q-chip>
               </template>
-              <template v-else-if="props.row.impactSeverity == 'LOW'">
+              <template v-else-if="props.row.impactSeverity == 'LOW'|| props.row.impactSeverity == 'niedrig'">
                 <q-chip color="indigo" text-color="white" size="sm">
                   <q-avatar color="indigo-10" text-color="white">{{props.row.impactScore}}</q-avatar>
                   LOW
                 </q-chip>
               </template>
-              <template v-else-if="props.row.impactSeverity == 'MEDIUM'">
+              <template v-else-if="props.row.impactSeverity == 'MEDIUM' || props.row.impactSeverity == 'mittel'">
                 <q-chip color="yellow" text-color="black" size="sm">
                   <q-avatar color="yellow-10" text-color="white">{{props.row.impactScore}}</q-avatar>
                   MEDIUM
                 </q-chip>
               </template>
-              <template v-else-if="props.row.impactSeverity == 'HIGH'">
+              <template v-else-if="props.row.impactSeverity == 'HIGH' || props.row.impactSeverity == 'hoch'">
                 <q-chip color="orange" text-color="white" size="sm">
                   <q-avatar color="orange-10" text-color="white">{{props.row.impactScore}}</q-avatar>
                   HIGH
                 </q-chip>
               </template>
-              <template v-else-if="props.row.impactSeverity == 'CRITICAL'">
+              <template v-else-if="props.row.impactSeverity == 'CRITICAL' || props.row.impactSeverity == 'kritisch'">
                 <q-chip color="red" text-color="white" size="sm">
                   <q-avatar color="red-10" text-color="white">{{props.row.impactScore}}</q-avatar>
                   CRITICAL
@@ -260,6 +317,17 @@
 
         </q-table>
       </q-card-section>
+      <q-card-section class="text-right" v-if="link != ''">
+        <q-icon
+          name="open_in_new" size="xxs"
+          @click="openWindow(link)"
+          style="cursor: pointer;"
+          >
+          <q-tooltip>
+            Show in new window
+          </q-tooltip>
+        </q-icon>
+      </q-card-section>
     </q-card>
   </div>
 </template>
@@ -303,6 +371,10 @@ export default defineComponent({
 
     acknowledeable: {
       default: false,
+    },
+
+    link: {
+      default: '',
     },
 
     selectable: {

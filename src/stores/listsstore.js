@@ -21,6 +21,9 @@ export const useListsStore = defineStore(
       // https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
       knownExploitedVulns: (LocalStorage.getItem('knownExploitedVulns') || []),
 
+      //https://wid.cert-bund.de/content/public/securityAdvisory?size=100&sort=published%2Cdesc&aboFilter=false
+      certbundList: (LocalStorage.getItem('certbundList') || []),
+
     }),
     
     getters: {
@@ -29,7 +32,7 @@ export const useListsStore = defineStore(
       {
         return (this.lastCacheUpdate == null ||
             date.getDateDiff(new Date(), this.lastCacheUpdate, "minutes") > 30 ||
-            this.recentCVEs.length == 0 || this.modifiedCVEs.length == 0 || this.knownExploitedVulns.length == 0)
+            this.recentCVEs.length == 0 || this.modifiedCVEs.length == 0 || this.knownExploitedVulns.length == 0 || this.certbundList.length == 0)
       },
 
     },
@@ -98,6 +101,48 @@ export const useListsStore = defineStore(
   
         try { LocalStorage.set('knownExploitedVulns', storeFormat); } catch (error)  { console.log("Could not store known exploited vulnerabilities locally (not enough memory)"); }
         this.knownExploitedVulns = storeFormat;
+      },
+
+      
+      setCertbundList(newList)
+      {
+        let storeFormat = [];
+
+        for (let index = 0; index < newList.content.length; index++)
+        {
+          let element = {
+            id: newList.content[index].name,
+            description: newList.content[index].title,
+            publishedOn: new Date(newList.content[index].published),
+            modifiedOn: new Date(newList.content[index].published),
+            affected: [],
+            affectedAsString: "",
+            impactSeverity: newList.content[index].classification,
+            impactScore: newList.content[index].basescore / 10.0,
+            linkedCVEs: newList.content[index].cves,
+            linkedCVEsAsString: newList.content[index].cves.join("; "),
+            reference: "https://wid.cert-bund.de/portal/wid/securityadvisory?name=" + newList.content[index].name,
+          };
+
+          for (let lInd = 0; lInd < newList.content[index].productNames.length; lInd++)
+          {
+            element.affected.push({
+              cpe32Uri: newList.content[index].productNames[lInd],
+              vendor: "",
+              product: newList.content[index].productNames[lInd],
+              version: '',
+            });
+            element.affectedAsString += newList.content[index].productNames[lInd] + "; ";
+            
+          }
+
+          storeFormat.push(element);
+          
+        }
+
+  
+        try { LocalStorage.set('certbundList', storeFormat); } catch (error)  { console.log("Could not store CERT Bund List (not enough memory)"); }
+        this.certbundList = storeFormat;
       },
 
 

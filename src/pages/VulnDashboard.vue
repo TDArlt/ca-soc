@@ -1,7 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <q-card>
-      <q-card-section class="bg-primary text-white row">
+      <q-card-section class="bg-primary text-white row" v-if="!singleList()">
         <div class="text-h6 col-11 col-xs-10 col-sm-10 col-md-11">
           <q-icon name="crisis_alert" />
           Vulnerability Dashboard
@@ -13,6 +13,7 @@
         <template v-if="!loading">
           <template v-for="(table, index) in informationTables" :key="table.title">
             <InformationTable
+              v-if="!singleList() || singleListId == index"
               :ref="'table' + index"
               :class="table.class"
               :title="table.title"
@@ -26,6 +27,7 @@
               :actions="table.actions"
               :icon="table.icon"
               :acknowledeable="table.acknowledeable"
+              :link="table.link"
             />
           </template>
         </template>
@@ -53,9 +55,11 @@
 
 <script>
 import { defineComponent } from 'vue';
+import {useRoute} from 'vue-router';
 import { date, useQuasar } from 'quasar';
 import InformationTable from 'components/InformationTable.vue'
 import { useListsStore } from "stores/listsstore";
+
 
 export default defineComponent({
   name: 'IndexPage',
@@ -78,13 +82,15 @@ export default defineComponent({
             
           ],
           dataset: [],
-          lines: 10,
+          lines: this.singleList() ? 15 : 10,
           sort: 'publishedOn',
           sortDescending: true,
           rowKey: "id",
           icon: "warning",
-          class: "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-4",
+          class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-4",
           acknowledeable: true,
+
+          link: '/vuln-dashboard/0',
           
           selectable: true,
           actions: [
@@ -105,13 +111,15 @@ export default defineComponent({
             
           ],
           dataset: [],
-          lines: 5,
+          lines: this.singleList() ? 15 : 5,
           sort: 'modifiedOn',
           sortDescending: true,
           rowKey: "id",
           icon: "sync_problem",
-          class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
+          class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-4",
           acknowledeable: true,
+
+          link: '/vuln-dashboard/1',
           
           selectable: true,
           actions: [
@@ -132,13 +140,45 @@ export default defineComponent({
             
           ],
           dataset: [],
-          lines: 5,
+          lines: this.singleList() ? 15 : 5,
           sort: 'modifiedOn',
           sortDescending: true,
           rowKey: "id",
           icon: "running_with_errors",
-          class: "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-4",
+          class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-4",
           acknowledeable: true,
+
+          link: '/vuln-dashboard/2',
+          
+          selectable: true,
+          actions: [
+            { icon: 'task_alt', label: "Acknowledge selected vulnearbilites", method: this.acknowledge, },
+          ]
+        },
+
+
+        {
+          title: "CERT Bund List",
+          columns: [
+            { name: "id", label: "ID", field: "id", align: "left", sortable: true },
+            { name: "score", label: "Severity", field: "impactScore", align: "left", sortable: true, format: (val, row) => (row.impactScore + " [" + row.impactSeverity + "]") },
+            { name: "description", label: "Description", field: "description", align: "left", sortable: false },
+            { name: "reference", label: "Reference", field: "reference", align: "left", sortable: false },
+            { name: "affected", label: "Affected", field: "affectedAsString", align: "left", sortable: true },
+            { name: "linkedCVEs", label: "CVEs", field: "linkedCVEs", align: "left", sortable: true },
+            { name: "publishedOn", label: "Published", field: "publishedOn", align: "left", sortable: true, format: (val, row) => date.formatDate(val, "YYYY/MM/DD"), },
+            
+          ],
+          dataset: [],
+          lines: this.singleList() ? 15 : 5,
+          sort: 'modifiedOn',
+          sortDescending: true,
+          rowKey: "id",
+          icon: "local_police",
+          class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-4",
+          acknowledeable: true,
+
+          link: '/vuln-dashboard/3',
           
           selectable: true,
           actions: [
@@ -168,6 +208,19 @@ export default defineComponent({
       return lStore.knownExploitedVulns;
     },
 
+    certbundList()
+    {
+      const lStore = useListsStore();
+      return lStore.certbundList;
+    },
+
+    singleListId()
+    {
+      const vueRoute = useRoute();
+      const pathList = vueRoute.path.split('/');
+      return pathList[pathList.length - 1];
+    },
+
 
   },
 
@@ -188,9 +241,17 @@ export default defineComponent({
       this.informationTables[0].dataset = this.knownExploitedVulns;
       this.informationTables[1].dataset = this.updatedCVEs;
       this.informationTables[2].dataset = this.recentCVEs;
+      this.informationTables[3].dataset = this.certbundList;
       
 
       this.loading = false;
+    },
+
+    singleList()
+    {
+      const vueRoute = useRoute();
+      const pathList = vueRoute.path.split('/');
+      return vueRoute.path.split('/').length > 2 && pathList[pathList.length - 1] != '';
     },
 
 
