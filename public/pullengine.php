@@ -75,6 +75,12 @@ if ($method == 'POST')
             "verify_peer_name"=>false,
         )
     );
+
+    if (isset($_GET['sort']))
+    {
+        $url .= '&sort=' . $_GET['sort'];
+    }
+
     $context = stream_context_create($opts);
     $result = file_get_contents($url, false, $context);
 }
