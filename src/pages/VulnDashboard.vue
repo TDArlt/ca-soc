@@ -90,7 +90,7 @@ export default defineComponent({
           class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-4",
           acknowledeable: true,
 
-          link: '/vuln-dashboard/0',
+          link: '#vuln-dashboard/0',
           
           selectable: true,
           actions: [
@@ -119,7 +119,7 @@ export default defineComponent({
           class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-4",
           acknowledeable: true,
 
-          link: '/vuln-dashboard/1',
+          link: '#vuln-dashboard/1',
           
           selectable: true,
           actions: [
@@ -148,7 +148,7 @@ export default defineComponent({
           class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 col-xxl-4",
           acknowledeable: true,
 
-          link: '/vuln-dashboard/2',
+          link: '#vuln-dashboard/2',
           
           selectable: true,
           actions: [
@@ -178,7 +178,7 @@ export default defineComponent({
           class: this.singleList() ? "col-12" : "col-12 col-xs-12 col-sm-12 col-md-12 col-lg-12 col-xl-12 col-xxl-4",
           acknowledeable: true,
 
-          link: '/vuln-dashboard/3',
+          link: '#vuln-dashboard/3',
           
           selectable: true,
           actions: [
